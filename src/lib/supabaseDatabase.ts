@@ -199,7 +199,13 @@ export const getAllKeys = async (): Promise<LoginKey[]> => {
   return data as LoginKey[];
 };
 
-export const createKey = async (name: string, keyValue: string, maxDevices: number = 10): Promise<LoginKey | null> => {
+export const createKey = async (
+  name: string,
+  keyValue: string,
+  maxDevices: number = 10,
+  expiresAt?: string | null,
+  allowedIps?: string[] | null
+): Promise<LoginKey | null> => {
   const { data, error } = await supabase
     .from('login_keys')
     .insert({
@@ -208,6 +214,8 @@ export const createKey = async (name: string, keyValue: string, maxDevices: numb
       max_devices: maxDevices,
       usage_count: 0,
       is_active: true,
+      expires_at: expiresAt || null,
+      allowed_ips: allowedIps && allowedIps.length > 0 ? allowedIps : null,
     })
     .select()
     .single();
