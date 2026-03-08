@@ -15,6 +15,8 @@ import {
   User,
   Monitor,
   Shield,
+  AlertTriangle,
+  CalendarClock,
 } from "lucide-react";
 import { getDeviceInfo } from "@/lib/deviceFingerprint";
 
@@ -30,6 +32,21 @@ const SearchPortal = ({ userKey, onLogout }: SearchPortalProps) => {
   const [response, setResponse] = useState<ApiResponse | null>(null);
 
   const deviceInfo = getDeviceInfo();
+
+  // Check if key is expiring soon (within 7 days)
+  const getExpirationWarning = () => {
+    if (!userKey.expires_at) return null;
+    const expiresAt = new Date(userKey.expires_at);
+    const now = new Date();
+    const daysLeft = Math.ceil((expiresAt.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+    
+    if (daysLeft <= 0) return { message: "Your access key has expired!", urgent: true, days: 0 };
+    if (daysLeft <= 3) return { message: `Your access key expires in ${daysLeft} day${daysLeft === 1 ? '' : 's'}!`, urgent: true, days: daysLeft };
+    if (daysLeft <= 7) return { message: `Your access key expires in ${daysLeft} days.`, urgent: false, days: daysLeft };
+    return null;
+  };
+
+  const expirationWarning = getExpirationWarning();
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -87,6 +104,25 @@ const SearchPortal = ({ userKey, onLogout }: SearchPortalProps) => {
       </header>
 
       <main className="max-w-6xl mx-auto px-4 py-8">
+        {/* Expiration Warning Banner */}
+        {expirationWarning && (
+          <div className={`mb-6 p-4 rounded-xl border flex items-center gap-3 animate-fade-in ${
+            expirationWarning.urgent
+              ? 'bg-destructive/10 border-destructive/30 text-destructive'
+              : 'bg-warning/10 border-warning/30 text-warning'
+          }`}>
+            <AlertTriangle className="w-5 h-5 flex-shrink-0" />
+            <div className="flex-1">
+              <p className="font-medium text-sm">{expirationWarning.message}</p>
+              <p className="text-xs opacity-80 mt-0.5">
+                {userKey.expires_at && `Expires: ${new Date(userKey.expires_at).toLocaleDateString()} at ${new Date(userKey.expires_at).toLocaleTimeString()}`}
+                {expirationWarning.days <= 0 ? ' — Please contact your administrator for renewal.' : ' — Contact admin to extend your subscription.'}
+              </p>
+            </div>
+            <CalendarClock className="w-5 h-5 flex-shrink-0 opacity-60" />
+          </div>
+        )}
+
         {/* Session Info */}
         <div className="mb-6 p-4 bg-card/50 border border-border rounded-xl flex items-center justify-between animate-fade-in">
           <div className="flex items-center gap-3">
@@ -95,6 +131,7 @@ const SearchPortal = ({ userKey, onLogout }: SearchPortalProps) => {
               <p className="text-sm font-medium text-foreground">Secure Session Active</p>
               <p className="text-xs text-muted-foreground">
                 {deviceInfo.device} • {deviceInfo.os} • {deviceInfo.timezone}
+                {userKey.expires_at && ` • Valid until ${new Date(userKey.expires_at).toLocaleDateString()}`}
               </p>
             </div>
           </div>

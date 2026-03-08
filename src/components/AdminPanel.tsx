@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -11,6 +11,8 @@ import {
   clearAllLogs,
   updateKeyStatus,
   updateKeyMaxDevices,
+  updateKeyExpiration,
+  updateKeyAllowedIps,
   blockDevice,
   unblockDevice,
   removeDevice,
@@ -22,6 +24,7 @@ import {
   SearchLog,
   DeviceLogin,
 } from "@/lib/supabaseDatabase";
+import { supabase } from "@/integrations/supabase/client";
 import {
   ShieldCheck,
   LogOut,
@@ -50,6 +53,11 @@ import {
   EyeOff,
   Settings,
   Lock,
+  CalendarClock,
+  Shield,
+  Bell,
+  Wifi,
+  X,
 } from "lucide-react";
 import { toast } from "sonner";
 import AdminPasswordChange from "./AdminPasswordChange";
@@ -83,6 +91,8 @@ const AdminPanel = ({ onLogout }: AdminPanelProps) => {
   const [newKeyName, setNewKeyName] = useState("");
   const [newKeyValue, setNewKeyValue] = useState("");
   const [newKeyMaxDevices, setNewKeyMaxDevices] = useState("10");
+  const [newKeyExpiresAt, setNewKeyExpiresAt] = useState("");
+  const [newKeyAllowedIps, setNewKeyAllowedIps] = useState("");
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
@@ -94,6 +104,14 @@ const AdminPanel = ({ onLogout }: AdminPanelProps) => {
   });
   const [selectedKeyDevices, setSelectedKeyDevices] = useState<string | null>(null);
   const [showPasswordChange, setShowPasswordChange] = useState(false);
+  const [loginNotifications, setLoginNotifications] = useState<Array<{
+    id: string;
+    keyName: string;
+    device: string;
+    location: string;
+    time: Date;
+  }>>([]);
+  const previousDeviceCountRef = useRef<number>(0);
 
   useEffect(() => {
     refreshData();
@@ -103,10 +121,55 @@ const AdminPanel = ({ onLogout }: AdminPanelProps) => {
     const devicesSubscription = subscribeToDevices(setDevices);
     const logsSubscription = subscribeToLogs(setLogs);
 
+    // Subscribe to real-time login notifications
+    const loginChannel = supabase
+      .channel('admin_login_notifications')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'device_logins' }, (payload) => {
+        const newDevice = payload.new as any;
+        const notification = {
+          id: newDevice.id,
+          keyName: 'Loading...',
+          device: `${newDevice.browser || 'Unknown'} on ${newDevice.os || 'Unknown'}`,
+          location: newDevice.location || 'Unknown',
+          time: new Date(),
+        };
+
+        // Get key name
+        supabase.from('login_keys').select('name').eq('id', newDevice.key_id).single().then(({ data }) => {
+          if (data) {
+            notification.keyName = data.name;
+            setLoginNotifications(prev => [notification, ...prev].slice(0, 20));
+            toast.info(`🔔 New Login: ${data.name}`, {
+              description: `${notification.device} from ${notification.location}`,
+              duration: 8000,
+            });
+          }
+        });
+
+        setLoginNotifications(prev => [notification, ...prev].slice(0, 20));
+      })
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'device_logins' }, (payload) => {
+        const updated = payload.new as any;
+        const old = payload.old as any;
+        // Only notify on login_count increase (returning user login)
+        if (updated.login_count > (old.login_count || 0)) {
+          supabase.from('login_keys').select('name').eq('id', updated.key_id).single().then(({ data }) => {
+            if (data) {
+              toast.info(`🔑 Return Login: ${data.name}`, {
+                description: `${updated.browser || 'Unknown'} on ${updated.os || 'Unknown'} from ${updated.location || 'Unknown'}`,
+                duration: 5000,
+              });
+            }
+          });
+        }
+      })
+      .subscribe();
+
     return () => {
       keysSubscription.unsubscribe();
       devicesSubscription.unsubscribe();
       logsSubscription.unsubscribe();
+      loginChannel.unsubscribe();
     };
   }, []);
 
@@ -122,6 +185,7 @@ const AdminPanel = ({ onLogout }: AdminPanelProps) => {
     setLogs(logsData);
     setDevices(devicesData);
     setStats(statsData);
+    previousDeviceCountRef.current = devicesData.length;
     setLoading(false);
   };
 
@@ -133,13 +197,19 @@ const AdminPanel = ({ onLogout }: AdminPanelProps) => {
 
     const keyValue = newKeyValue.trim() || generateRandomKey();
     const maxDevices = parseInt(newKeyMaxDevices) || 10;
+    const expiresAt = newKeyExpiresAt ? new Date(newKeyExpiresAt).toISOString() : null;
+    const allowedIps = newKeyAllowedIps.trim()
+      ? newKeyAllowedIps.split(',').map(ip => ip.trim()).filter(Boolean)
+      : null;
     
-    const result = await createKey(newKeyName.trim(), keyValue, maxDevices);
+    const result = await createKey(newKeyName.trim(), keyValue, maxDevices, expiresAt, allowedIps);
     if (result) {
       toast.success("Key created successfully");
       setNewKeyName("");
       setNewKeyValue("");
       setNewKeyMaxDevices("10");
+      setNewKeyExpiresAt("");
+      setNewKeyAllowedIps("");
       refreshData();
     } else {
       toast.error("Failed to create key");
@@ -225,6 +295,29 @@ const AdminPanel = ({ onLogout }: AdminPanelProps) => {
     return devices.filter(d => d.key_id === keyId);
   };
 
+  const getExpirationBadge = (key: LoginKey) => {
+    if (!key.expires_at) return null;
+    const expiresAt = new Date(key.expires_at);
+    const now = new Date();
+    const daysLeft = Math.ceil((expiresAt.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+    
+    if (daysLeft <= 0) return <Badge variant="destructive" className="text-xs">Expired</Badge>;
+    if (daysLeft <= 3) return <Badge variant="destructive" className="text-xs">{daysLeft}d left</Badge>;
+    if (daysLeft <= 7) return <Badge className="bg-warning/20 text-warning border-warning/30 text-xs">{daysLeft}d left</Badge>;
+    return <Badge variant="outline" className="text-xs">{expiresAt.toLocaleDateString()}</Badge>;
+  };
+
+  // Get expiring keys for dashboard
+  const getExpiringKeys = () => {
+    return keys.filter(k => {
+      if (!k.expires_at || !k.is_active) return false;
+      const daysLeft = Math.ceil((new Date(k.expires_at).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+      return daysLeft <= 7 && daysLeft > 0;
+    });
+  };
+
+  const expiringKeys = getExpiringKeys();
+
   return (
     <div className="min-h-screen bg-background grid-pattern">
       {/* Header */}
@@ -235,6 +328,15 @@ const AdminPanel = ({ onLogout }: AdminPanelProps) => {
             <h1 className="text-xl font-bold text-foreground">Admin Control Center</h1>
           </div>
           <div className="flex items-center gap-4">
+            {/* Notification bell */}
+            {loginNotifications.length > 0 && (
+              <div className="relative">
+                <Bell className="w-5 h-5 text-warning animate-pulse" />
+                <span className="absolute -top-1 -right-1 w-3 h-3 bg-destructive rounded-full text-[8px] text-white flex items-center justify-center">
+                  {loginNotifications.length}
+                </span>
+              </div>
+            )}
             <Button variant="ghost" size="sm" onClick={refreshData} disabled={loading}>
               <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
               Refresh
@@ -275,6 +377,55 @@ const AdminPanel = ({ onLogout }: AdminPanelProps) => {
         {/* Dashboard Tab */}
         {activeTab === "dashboard" && (
           <div className="space-y-6 animate-fade-in">
+            {/* Expiring Keys Warning */}
+            {expiringKeys.length > 0 && (
+              <div className="bg-warning/10 border border-warning/30 rounded-xl p-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <AlertTriangle className="w-5 h-5 text-warning" />
+                  <h2 className="text-sm font-semibold text-warning">Keys Expiring Soon</h2>
+                </div>
+                <div className="space-y-2">
+                  {expiringKeys.map(k => {
+                    const daysLeft = Math.ceil((new Date(k.expires_at!).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+                    return (
+                      <div key={k.id} className="flex items-center justify-between text-sm">
+                        <span className="text-foreground font-medium">{k.name}</span>
+                        <span className={`${daysLeft <= 3 ? 'text-destructive' : 'text-warning'} font-mono text-xs`}>
+                          {daysLeft} day{daysLeft !== 1 ? 's' : ''} remaining
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Recent Login Notifications */}
+            {loginNotifications.length > 0 && (
+              <div className="bg-primary/5 border border-primary/20 rounded-xl p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <Bell className="w-5 h-5 text-primary" />
+                    <h2 className="text-sm font-semibold text-foreground">Recent Login Alerts</h2>
+                  </div>
+                  <Button variant="ghost" size="sm" onClick={() => setLoginNotifications([])}>
+                    <X className="w-4 h-4" />
+                  </Button>
+                </div>
+                <div className="space-y-2 max-h-[200px] overflow-y-auto">
+                  {loginNotifications.slice(0, 5).map(n => (
+                    <div key={n.id} className="flex items-center justify-between p-2 rounded-lg bg-card/50 border border-border text-sm">
+                      <div>
+                        <span className="font-medium text-foreground">{n.keyName}</span>
+                        <span className="text-muted-foreground ml-2">• {n.device}</span>
+                      </div>
+                      <span className="text-xs text-muted-foreground">{n.time.toLocaleTimeString()}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div className="bg-card border border-border rounded-xl p-6">
@@ -287,6 +438,7 @@ const AdminPanel = ({ onLogout }: AdminPanelProps) => {
                 </div>
                 <p className="text-xs text-muted-foreground mt-2">
                   {stats.activeKeys} active
+                  {expiringKeys.length > 0 && ` • ${expiringKeys.length} expiring soon`}
                 </p>
               </div>
               <div className="bg-card border border-border rounded-xl p-6">
@@ -385,7 +537,7 @@ const AdminPanel = ({ onLogout }: AdminPanelProps) => {
                 <Plus className="w-5 h-5 text-warning" />
                 Create New Key
               </h2>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
                 <div>
                   <label className="text-sm text-muted-foreground mb-2 block">Key Name</label>
                   <Input
@@ -419,6 +571,29 @@ const AdminPanel = ({ onLogout }: AdminPanelProps) => {
                     max="100"
                   />
                 </div>
+                <div>
+                  <label className="text-sm text-muted-foreground mb-2 block flex items-center gap-1">
+                    <CalendarClock className="w-3 h-3" />
+                    Expiration Date (optional)
+                  </label>
+                  <Input
+                    type="datetime-local"
+                    value={newKeyExpiresAt}
+                    onChange={(e) => setNewKeyExpiresAt(e.target.value)}
+                  />
+                </div>
+                <div className="md:col-span-2">
+                  <label className="text-sm text-muted-foreground mb-2 block flex items-center gap-1">
+                    <Wifi className="w-3 h-3" />
+                    Allowed IPs (comma-separated, optional)
+                  </label>
+                  <Input
+                    placeholder="e.g., 192.168.1.1, 10.0.0.1"
+                    value={newKeyAllowedIps}
+                    onChange={(e) => setNewKeyAllowedIps(e.target.value)}
+                    className="font-mono"
+                  />
+                </div>
               </div>
               <Button onClick={handleCreateKey} className="bg-warning text-warning-foreground hover:bg-warning/90">
                 <Plus className="w-4 h-4 mr-2" />
@@ -445,6 +620,8 @@ const AdminPanel = ({ onLogout }: AdminPanelProps) => {
                         <TableHead>Name</TableHead>
                         <TableHead>Key</TableHead>
                         <TableHead>Status</TableHead>
+                        <TableHead>Expires</TableHead>
+                        <TableHead>IPs</TableHead>
                         <TableHead>Devices</TableHead>
                         <TableHead>Uses</TableHead>
                         <TableHead>Created</TableHead>
@@ -482,6 +659,45 @@ const AdminPanel = ({ onLogout }: AdminPanelProps) => {
                               <Badge variant={key.is_active ? "default" : "secondary"}>
                                 {key.is_active ? "Active" : "Inactive"}
                               </Badge>
+                            </TableCell>
+                            <TableCell>
+                              {key.expires_at ? (
+                                <div className="flex flex-col gap-1">
+                                  {getExpirationBadge(key)}
+                                </div>
+                              ) : (
+                                <span className="text-xs text-muted-foreground">Never</span>
+                              )}
+                            </TableCell>
+                            <TableCell>
+                              {key.allowed_ips && key.allowed_ips.length > 0 ? (
+                                <Dialog>
+                                  <DialogTrigger asChild>
+                                    <Button variant="ghost" size="sm" className="h-auto p-1">
+                                      <Badge variant="outline" className="text-xs">
+                                        <Wifi className="w-3 h-3 mr-1" />
+                                        {key.allowed_ips.length} IP{key.allowed_ips.length !== 1 ? 's' : ''}
+                                      </Badge>
+                                    </Button>
+                                  </DialogTrigger>
+                                  <DialogContent>
+                                    <DialogHeader>
+                                      <DialogTitle>Allowed IPs for {key.name}</DialogTitle>
+                                      <DialogDescription>Only these IPs can use this key</DialogDescription>
+                                    </DialogHeader>
+                                    <div className="space-y-2">
+                                      {key.allowed_ips.map((ip, i) => (
+                                        <div key={i} className="flex items-center gap-2 p-2 bg-secondary/30 rounded font-mono text-sm">
+                                          <Globe className="w-4 h-4 text-muted-foreground" />
+                                          {ip}
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </DialogContent>
+                                </Dialog>
+                              ) : (
+                                <span className="text-xs text-muted-foreground">All</span>
+                              )}
                             </TableCell>
                             <TableCell>
                               <Dialog>
