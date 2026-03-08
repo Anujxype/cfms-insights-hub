@@ -437,44 +437,50 @@ const AdminPanel = ({ onLogout }: AdminPanelProps) => {
 
             {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div className="bg-card border border-border rounded-xl p-6">
+              <div className="glass rounded-xl p-6 card-hover">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-muted-foreground text-sm">Total Keys</p>
-                    <p className="text-3xl font-bold text-foreground">{stats.totalKeys}</p>
+                    <p className="text-3xl font-bold gradient-text">{stats.totalKeys}</p>
                   </div>
-                  <Key className="w-10 h-10 text-primary/30" />
+                  <div className="w-12 h-12 rounded-xl bg-primary/8 flex items-center justify-center">
+                    <Key className="w-6 h-6 text-primary/50" />
+                  </div>
                 </div>
-                <p className="text-xs text-muted-foreground mt-2">
+                <p className="text-xs text-muted-foreground mt-3">
                   {stats.activeKeys} active
                   {expiringKeys.length > 0 && ` • ${expiringKeys.length} expiring soon`}
                 </p>
               </div>
-              <div className="bg-card border border-border rounded-xl p-6">
+              <div className="glass rounded-xl p-6 card-hover">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-muted-foreground text-sm">Active Devices</p>
                     <p className="text-3xl font-bold text-foreground">{stats.totalDevices}</p>
                   </div>
-                  <Users className="w-10 h-10 text-success/30" />
+                  <div className="w-12 h-12 rounded-xl bg-success/8 flex items-center justify-center">
+                    <Users className="w-6 h-6 text-success/50" />
+                  </div>
                 </div>
-                <p className="text-xs text-muted-foreground mt-2">
+                <p className="text-xs text-muted-foreground mt-3">
                   Connected users
                 </p>
               </div>
-              <div className="bg-card border border-border rounded-xl p-6">
+              <div className="glass rounded-xl p-6 card-hover">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-muted-foreground text-sm">Total Searches</p>
                     <p className="text-3xl font-bold text-foreground">{stats.totalSearches}</p>
                   </div>
-                  <Search className="w-10 h-10 text-warning/30" />
+                  <div className="w-12 h-12 rounded-xl bg-warning/8 flex items-center justify-center">
+                    <Search className="w-6 h-6 text-warning/50" />
+                  </div>
                 </div>
-                <p className="text-xs text-muted-foreground mt-2">
+                <p className="text-xs text-muted-foreground mt-3">
                   API requests made
                 </p>
               </div>
-              <div className="bg-card border border-border rounded-xl p-6">
+              <div className="glass rounded-xl p-6 card-hover">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-muted-foreground text-sm">Success Rate</p>
@@ -484,16 +490,18 @@ const AdminPanel = ({ onLogout }: AdminPanelProps) => {
                         : 0}%
                     </p>
                   </div>
-                  <TrendingUp className="w-10 h-10 text-primary/30" />
+                  <div className="w-12 h-12 rounded-xl bg-primary/8 flex items-center justify-center">
+                    <TrendingUp className="w-6 h-6 text-primary/50" />
+                  </div>
                 </div>
-                <p className="text-xs text-muted-foreground mt-2">
+                <p className="text-xs text-muted-foreground mt-3">
                   Successful queries
                 </p>
               </div>
             </div>
 
             {/* Recent Activity */}
-            <div className="bg-card border border-border rounded-xl p-6">
+            <div className="glass-strong rounded-2xl p-6 border-gradient">
               <div className="flex items-center gap-2 mb-4">
                 <Activity className="w-5 h-5 text-warning" />
                 <h2 className="text-lg font-semibold text-foreground">Recent Activity</h2>
