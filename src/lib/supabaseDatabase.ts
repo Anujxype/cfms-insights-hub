@@ -71,6 +71,7 @@ export const validateKeyWithDevice = async (keyValue: string): Promise<{
   error?: string;
   deviceCount?: number;
   maxDevices?: number;
+  expiresAt?: string | null;
 }> => {
   const deviceId = getStoredDeviceId();
   const deviceInfo = getDeviceInfo();
@@ -87,6 +88,28 @@ export const validateKeyWithDevice = async (keyValue: string): Promise<{
   }
 
   const key = keys[0] as LoginKey;
+
+  // Check expiration
+  if (key.expires_at && new Date(key.expires_at) < new Date()) {
+    // Auto-disable expired key
+    await supabase.from('login_keys').update({ is_active: false }).eq('id', key.id);
+    return { success: false, error: 'This access key has expired. Contact admin for renewal.' };
+  }
+
+  // Check IP whitelist
+  if (key.allowed_ips && key.allowed_ips.length > 0) {
+    try {
+      const ipResponse = await fetch('https://ipapi.co/json/');
+      if (ipResponse.ok) {
+        const ipData = await ipResponse.json();
+        if (!key.allowed_ips.includes(ipData.ip)) {
+          return { success: false, error: 'Access denied: Your IP address is not authorized for this key.' };
+        }
+      }
+    } catch {
+      // If IP check fails, allow access (fail open for usability)
+    }
+  }
 
   // Check existing devices for this key
   const { data: devices, error: deviceError } = await supabase
