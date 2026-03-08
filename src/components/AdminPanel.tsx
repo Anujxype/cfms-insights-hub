@@ -359,7 +359,7 @@ const AdminPanel = ({ onLogout }: AdminPanelProps) => {
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 py-8">
+      <main className="max-w-7xl mx-auto px-4 py-8 relative z-[2]">
         {/* Tabs */}
         <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
           {[
@@ -372,7 +372,10 @@ const AdminPanel = ({ onLogout }: AdminPanelProps) => {
               key={tab.id}
               variant={activeTab === tab.id ? "default" : "outline"}
               onClick={() => setActiveTab(tab.id as typeof activeTab)}
-              className={activeTab === tab.id ? "bg-warning text-warning-foreground hover:bg-warning/90" : ""}
+              className={activeTab === tab.id 
+                ? "bg-warning text-warning-foreground hover:bg-warning/85 shadow-[0_0_15px_hsl(42_95%_55%/0.2)]" 
+                : "glass border-border/40 hover:border-warning/30"
+              }
             >
               <tab.icon className="w-4 h-4 mr-2" />
               {tab.label}
