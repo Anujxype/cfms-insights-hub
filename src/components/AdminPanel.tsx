@@ -319,13 +319,19 @@ const AdminPanel = ({ onLogout }: AdminPanelProps) => {
   const expiringKeys = getExpiringKeys();
 
   return (
-    <div className="min-h-screen bg-background grid-pattern">
+    <div className="min-h-screen bg-background grid-pattern noise-bg relative">
+      {/* Ambient orbs */}
+      <div className="fixed top-0 right-1/4 w-[500px] h-[400px] bg-warning/3 rounded-full blur-[150px] pointer-events-none" />
+      <div className="fixed bottom-0 left-1/3 w-[500px] h-[400px] bg-accent/3 rounded-full blur-[150px] pointer-events-none" />
+
       {/* Header */}
-      <header className="border-b border-warning/20 bg-card/80 backdrop-blur-sm sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
+      <header className="border-b border-border/40 glass-strong sticky top-0 z-10">
+        <div className="max-w-7xl mx-auto px-4 py-3.5 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <ShieldCheck className="w-6 h-6 text-warning" />
-            <h1 className="text-xl font-bold text-foreground">Admin Control Center</h1>
+            <div className="w-9 h-9 rounded-lg bg-warning/10 border border-warning/20 flex items-center justify-center">
+              <ShieldCheck className="w-5 h-5 text-warning" />
+            </div>
+            <h1 className="text-lg font-bold text-foreground">Admin Control Center</h1>
           </div>
           <div className="flex items-center gap-4">
             {/* Notification bell */}
