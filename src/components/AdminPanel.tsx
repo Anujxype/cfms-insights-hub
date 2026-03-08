@@ -549,7 +549,7 @@ const AdminPanel = ({ onLogout }: AdminPanelProps) => {
         {activeTab === "keys" && (
           <div className="space-y-6 animate-fade-in">
             {/* Create Key */}
-            <div className="bg-card border border-border rounded-xl p-6">
+            <div className="glass-strong rounded-2xl p-6 border-gradient">
               <h2 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
                 <Plus className="w-5 h-5 text-warning" />
                 Create New Key
