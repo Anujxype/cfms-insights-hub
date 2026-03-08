@@ -12,6 +12,8 @@ export interface LoginKey {
   usage_count: number;
   max_devices: number;
   is_active: boolean;
+  expires_at?: string | null;
+  allowed_ips?: string[] | null;
 }
 
 export interface DeviceLogin {
@@ -69,6 +71,7 @@ export const validateKeyWithDevice = async (keyValue: string): Promise<{
   error?: string;
   deviceCount?: number;
   maxDevices?: number;
+  expiresAt?: string | null;
 }> => {
   const deviceId = getStoredDeviceId();
   const deviceInfo = getDeviceInfo();
@@ -85,6 +88,28 @@ export const validateKeyWithDevice = async (keyValue: string): Promise<{
   }
 
   const key = keys[0] as LoginKey;
+
+  // Check expiration
+  if (key.expires_at && new Date(key.expires_at) < new Date()) {
+    // Auto-disable expired key
+    await supabase.from('login_keys').update({ is_active: false }).eq('id', key.id);
+    return { success: false, error: 'This access key has expired. Contact admin for renewal.' };
+  }
+
+  // Check IP whitelist
+  if (key.allowed_ips && key.allowed_ips.length > 0) {
+    try {
+      const ipResponse = await fetch('https://ipapi.co/json/');
+      if (ipResponse.ok) {
+        const ipData = await ipResponse.json();
+        if (!key.allowed_ips.includes(ipData.ip)) {
+          return { success: false, error: 'Access denied: Your IP address is not authorized for this key.' };
+        }
+      }
+    } catch {
+      // If IP check fails, allow access (fail open for usability)
+    }
+  }
 
   // Check existing devices for this key
   const { data: devices, error: deviceError } = await supabase
@@ -156,6 +181,7 @@ export const validateKeyWithDevice = async (keyValue: string): Promise<{
     key,
     deviceCount: existingDevice ? activeDeviceCount : activeDeviceCount + 1,
     maxDevices: key.max_devices,
+    expiresAt: key.expires_at,
   };
 };
 
@@ -173,7 +199,13 @@ export const getAllKeys = async (): Promise<LoginKey[]> => {
   return data as LoginKey[];
 };
 
-export const createKey = async (name: string, keyValue: string, maxDevices: number = 10): Promise<LoginKey | null> => {
+export const createKey = async (
+  name: string,
+  keyValue: string,
+  maxDevices: number = 10,
+  expiresAt?: string | null,
+  allowedIps?: string[] | null
+): Promise<LoginKey | null> => {
   const { data, error } = await supabase
     .from('login_keys')
     .insert({
@@ -182,6 +214,8 @@ export const createKey = async (name: string, keyValue: string, maxDevices: numb
       max_devices: maxDevices,
       usage_count: 0,
       is_active: true,
+      expires_at: expiresAt || null,
+      allowed_ips: allowedIps && allowedIps.length > 0 ? allowedIps : null,
     })
     .select()
     .single();
@@ -216,6 +250,24 @@ export const updateKeyMaxDevices = async (id: string, maxDevices: number): Promi
   const { error } = await supabase
     .from('login_keys')
     .update({ max_devices: maxDevices })
+    .eq('id', id);
+
+  return !error;
+};
+
+export const updateKeyExpiration = async (id: string, expiresAt: string | null): Promise<boolean> => {
+  const { error } = await supabase
+    .from('login_keys')
+    .update({ expires_at: expiresAt })
+    .eq('id', id);
+
+  return !error;
+};
+
+export const updateKeyAllowedIps = async (id: string, allowedIps: string[] | null): Promise<boolean> => {
+  const { error } = await supabase
+    .from('login_keys')
+    .update({ allowed_ips: allowedIps && allowedIps.length > 0 ? allowedIps : null })
     .eq('id', id);
 
   return !error;
