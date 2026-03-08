@@ -12,6 +12,8 @@ export interface LoginKey {
   usage_count: number;
   max_devices: number;
   is_active: boolean;
+  expires_at?: string | null;
+  allowed_ips?: string[] | null;
 }
 
 export interface DeviceLogin {
