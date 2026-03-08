@@ -619,7 +619,7 @@ const AdminPanel = ({ onLogout }: AdminPanelProps) => {
             </div>
 
             {/* Keys Table */}
-            <div className="bg-card border border-border rounded-xl p-6">
+            <div className="glass-strong rounded-2xl p-6 border-gradient">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
                   <Key className="w-5 h-5 text-warning" />
