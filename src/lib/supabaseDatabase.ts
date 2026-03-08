@@ -181,6 +181,7 @@ export const validateKeyWithDevice = async (keyValue: string): Promise<{
     key,
     deviceCount: existingDevice ? activeDeviceCount : activeDeviceCount + 1,
     maxDevices: key.max_devices,
+    expiresAt: key.expires_at,
   };
 };
 
