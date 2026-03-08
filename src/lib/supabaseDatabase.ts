@@ -255,6 +255,24 @@ export const updateKeyMaxDevices = async (id: string, maxDevices: number): Promi
   return !error;
 };
 
+export const updateKeyExpiration = async (id: string, expiresAt: string | null): Promise<boolean> => {
+  const { error } = await supabase
+    .from('login_keys')
+    .update({ expires_at: expiresAt })
+    .eq('id', id);
+
+  return !error;
+};
+
+export const updateKeyAllowedIps = async (id: string, allowedIps: string[] | null): Promise<boolean> => {
+  const { error } = await supabase
+    .from('login_keys')
+    .update({ allowed_ips: allowedIps && allowedIps.length > 0 ? allowedIps : null })
+    .eq('id', id);
+
+  return !error;
+};
+
 // Device Management
 export const getDevicesForKey = async (keyId: string): Promise<DeviceLogin[]> => {
   const { data, error } = await supabase
