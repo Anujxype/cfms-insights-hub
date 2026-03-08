@@ -828,7 +828,7 @@ const AdminPanel = ({ onLogout }: AdminPanelProps) => {
 
         {/* Devices Tab */}
         {activeTab === "devices" && (
-          <div className="bg-card border border-border rounded-xl p-6 animate-fade-in">
+          <div className="glass-strong rounded-2xl p-6 border-gradient animate-fade-in">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
                 <Monitor className="w-5 h-5 text-warning" />
