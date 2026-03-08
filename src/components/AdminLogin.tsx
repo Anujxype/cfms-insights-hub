@@ -15,7 +15,6 @@ const AdminLogin = ({ onLogin, onBack }: AdminLoginProps) => {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    // Initialize admin settings on mount
     initializeAdminSettings();
   }, []);
 
@@ -25,7 +24,6 @@ const AdminLogin = ({ onLogin, onBack }: AdminLoginProps) => {
     setLoading(true);
 
     try {
-      // Initialize settings if needed and validate
       await initializeAdminSettings();
       const isValid = await validateAdminPassword(password.trim());
       
@@ -41,12 +39,16 @@ const AdminLogin = ({ onLogin, onBack }: AdminLoginProps) => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 grid-pattern">
-      <div className="w-full max-w-md animate-fade-in">
+    <div className="min-h-screen flex items-center justify-center p-4 grid-pattern noise-bg relative overflow-hidden">
+      {/* Ambient orbs — warm tones for admin */}
+      <div className="absolute top-1/3 left-1/3 w-96 h-96 bg-warning/5 rounded-full blur-[120px] animate-float" />
+      <div className="absolute bottom-1/3 right-1/3 w-80 h-80 bg-accent/4 rounded-full blur-[120px] animate-float" style={{ animationDelay: '2s' }} />
+
+      <div className="w-full max-w-md relative z-10">
         {/* Back Button */}
         <Button
           variant="ghost"
-          className="mb-6 text-muted-foreground hover:text-foreground"
+          className="mb-6 text-muted-foreground hover:text-foreground animate-fade-in"
           onClick={onBack}
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
@@ -54,21 +56,26 @@ const AdminLogin = ({ onLogin, onBack }: AdminLoginProps) => {
         </Button>
 
         {/* Logo/Brand */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-warning/10 border border-warning/30 mb-4">
+        <div className="text-center mb-10 animate-fade-in">
+          <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl glass border-gradient mb-5 animate-float">
             <ShieldCheck className="w-10 h-10 text-warning" />
           </div>
-          <h1 className="text-3xl font-bold text-foreground">
+          <h1 className="text-4xl font-bold text-foreground mb-2">
             Admin Panel
           </h1>
-          <p className="text-muted-foreground mt-2">
+          <p className="text-muted-foreground text-sm tracking-wide uppercase">
             Restricted Access
           </p>
         </div>
 
         {/* Login Card */}
-        <div className="bg-card border border-warning/20 rounded-xl p-6 shadow-2xl">
-          <form onSubmit={handleSubmit} className="space-y-5">
+        <div className="glass-strong rounded-2xl p-8 shadow-2xl shadow-black/20 animate-scale-in relative overflow-hidden">
+          {/* Animated top line */}
+          <div className="absolute top-0 left-0 right-0 h-px overflow-hidden rounded-t-2xl">
+            <div className="h-full w-1/2 bg-gradient-to-r from-transparent via-warning/60 to-transparent animate-glow-line" />
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
               <label className="text-sm font-medium text-foreground flex items-center gap-2">
                 <Lock className="w-4 h-4 text-warning" />
@@ -79,21 +86,22 @@ const AdminLogin = ({ onLogin, onBack }: AdminLoginProps) => {
                 placeholder="Enter admin password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                className="h-12 bg-background/50 border-border/60 focus:border-warning/50 transition-all duration-300"
                 disabled={loading}
               />
             </div>
 
             {error && (
-              <div className="flex items-center gap-2 text-destructive text-sm bg-destructive/10 border border-destructive/20 rounded-md p-3 animate-fade-in">
+              <div className="flex items-center gap-3 text-destructive text-sm bg-destructive/8 border border-destructive/20 rounded-xl p-4 animate-fade-in">
                 <AlertCircle className="w-4 h-4 flex-shrink-0" />
-                {error}
+                <span className="font-medium">{error}</span>
               </div>
             )}
 
             <Button
               type="submit"
               size="xl"
-              className="w-full bg-warning text-warning-foreground hover:bg-warning/90"
+              className="w-full bg-warning text-warning-foreground hover:bg-warning/85 font-semibold shadow-[0_0_20px_hsl(42_95%_55%/0.2)] hover:shadow-[0_0_30px_hsl(42_95%_55%/0.35)] transition-all duration-300"
               disabled={loading || !password.trim()}
             >
               {loading ? (
@@ -111,7 +119,7 @@ const AdminLogin = ({ onLogin, onBack }: AdminLoginProps) => {
           </form>
         </div>
 
-        <p className="text-center text-muted-foreground text-xs mt-6">
+        <p className="text-center text-muted-foreground/50 text-xs mt-8 tracking-wider uppercase animate-fade-in" style={{ animationDelay: '0.3s' }}>
           Administrative access is logged and monitored
         </p>
       </div>

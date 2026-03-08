@@ -319,13 +319,19 @@ const AdminPanel = ({ onLogout }: AdminPanelProps) => {
   const expiringKeys = getExpiringKeys();
 
   return (
-    <div className="min-h-screen bg-background grid-pattern">
+    <div className="min-h-screen bg-background grid-pattern noise-bg relative">
+      {/* Ambient orbs */}
+      <div className="fixed top-0 right-1/4 w-[500px] h-[400px] bg-warning/3 rounded-full blur-[150px] pointer-events-none" />
+      <div className="fixed bottom-0 left-1/3 w-[500px] h-[400px] bg-accent/3 rounded-full blur-[150px] pointer-events-none" />
+
       {/* Header */}
-      <header className="border-b border-warning/20 bg-card/80 backdrop-blur-sm sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
+      <header className="border-b border-border/40 glass-strong sticky top-0 z-10">
+        <div className="max-w-7xl mx-auto px-4 py-3.5 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <ShieldCheck className="w-6 h-6 text-warning" />
-            <h1 className="text-xl font-bold text-foreground">Admin Control Center</h1>
+            <div className="w-9 h-9 rounded-lg bg-warning/10 border border-warning/20 flex items-center justify-center">
+              <ShieldCheck className="w-5 h-5 text-warning" />
+            </div>
+            <h1 className="text-lg font-bold text-foreground">Admin Control Center</h1>
           </div>
           <div className="flex items-center gap-4">
             {/* Notification bell */}
@@ -353,7 +359,7 @@ const AdminPanel = ({ onLogout }: AdminPanelProps) => {
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 py-8">
+      <main className="max-w-7xl mx-auto px-4 py-8 relative z-[2]">
         {/* Tabs */}
         <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
           {[
@@ -366,7 +372,10 @@ const AdminPanel = ({ onLogout }: AdminPanelProps) => {
               key={tab.id}
               variant={activeTab === tab.id ? "default" : "outline"}
               onClick={() => setActiveTab(tab.id as typeof activeTab)}
-              className={activeTab === tab.id ? "bg-warning text-warning-foreground hover:bg-warning/90" : ""}
+              className={activeTab === tab.id 
+                ? "bg-warning text-warning-foreground hover:bg-warning/85 shadow-[0_0_15px_hsl(42_95%_55%/0.2)]" 
+                : "glass border-border/40 hover:border-warning/30"
+              }
             >
               <tab.icon className="w-4 h-4 mr-2" />
               {tab.label}
@@ -428,44 +437,50 @@ const AdminPanel = ({ onLogout }: AdminPanelProps) => {
 
             {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div className="bg-card border border-border rounded-xl p-6">
+              <div className="glass rounded-xl p-6 card-hover">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-muted-foreground text-sm">Total Keys</p>
-                    <p className="text-3xl font-bold text-foreground">{stats.totalKeys}</p>
+                    <p className="text-3xl font-bold gradient-text">{stats.totalKeys}</p>
                   </div>
-                  <Key className="w-10 h-10 text-primary/30" />
+                  <div className="w-12 h-12 rounded-xl bg-primary/8 flex items-center justify-center">
+                    <Key className="w-6 h-6 text-primary/50" />
+                  </div>
                 </div>
-                <p className="text-xs text-muted-foreground mt-2">
+                <p className="text-xs text-muted-foreground mt-3">
                   {stats.activeKeys} active
                   {expiringKeys.length > 0 && ` • ${expiringKeys.length} expiring soon`}
                 </p>
               </div>
-              <div className="bg-card border border-border rounded-xl p-6">
+              <div className="glass rounded-xl p-6 card-hover">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-muted-foreground text-sm">Active Devices</p>
                     <p className="text-3xl font-bold text-foreground">{stats.totalDevices}</p>
                   </div>
-                  <Users className="w-10 h-10 text-success/30" />
+                  <div className="w-12 h-12 rounded-xl bg-success/8 flex items-center justify-center">
+                    <Users className="w-6 h-6 text-success/50" />
+                  </div>
                 </div>
-                <p className="text-xs text-muted-foreground mt-2">
+                <p className="text-xs text-muted-foreground mt-3">
                   Connected users
                 </p>
               </div>
-              <div className="bg-card border border-border rounded-xl p-6">
+              <div className="glass rounded-xl p-6 card-hover">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-muted-foreground text-sm">Total Searches</p>
                     <p className="text-3xl font-bold text-foreground">{stats.totalSearches}</p>
                   </div>
-                  <Search className="w-10 h-10 text-warning/30" />
+                  <div className="w-12 h-12 rounded-xl bg-warning/8 flex items-center justify-center">
+                    <Search className="w-6 h-6 text-warning/50" />
+                  </div>
                 </div>
-                <p className="text-xs text-muted-foreground mt-2">
+                <p className="text-xs text-muted-foreground mt-3">
                   API requests made
                 </p>
               </div>
-              <div className="bg-card border border-border rounded-xl p-6">
+              <div className="glass rounded-xl p-6 card-hover">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-muted-foreground text-sm">Success Rate</p>
@@ -475,16 +490,18 @@ const AdminPanel = ({ onLogout }: AdminPanelProps) => {
                         : 0}%
                     </p>
                   </div>
-                  <TrendingUp className="w-10 h-10 text-primary/30" />
+                  <div className="w-12 h-12 rounded-xl bg-primary/8 flex items-center justify-center">
+                    <TrendingUp className="w-6 h-6 text-primary/50" />
+                  </div>
                 </div>
-                <p className="text-xs text-muted-foreground mt-2">
+                <p className="text-xs text-muted-foreground mt-3">
                   Successful queries
                 </p>
               </div>
             </div>
 
             {/* Recent Activity */}
-            <div className="bg-card border border-border rounded-xl p-6">
+            <div className="glass-strong rounded-2xl p-6 border-gradient">
               <div className="flex items-center gap-2 mb-4">
                 <Activity className="w-5 h-5 text-warning" />
                 <h2 className="text-lg font-semibold text-foreground">Recent Activity</h2>
@@ -532,7 +549,7 @@ const AdminPanel = ({ onLogout }: AdminPanelProps) => {
         {activeTab === "keys" && (
           <div className="space-y-6 animate-fade-in">
             {/* Create Key */}
-            <div className="bg-card border border-border rounded-xl p-6">
+            <div className="glass-strong rounded-2xl p-6 border-gradient">
               <h2 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
                 <Plus className="w-5 h-5 text-warning" />
                 Create New Key
@@ -602,7 +619,7 @@ const AdminPanel = ({ onLogout }: AdminPanelProps) => {
             </div>
 
             {/* Keys Table */}
-            <div className="bg-card border border-border rounded-xl p-6">
+            <div className="glass-strong rounded-2xl p-6 border-gradient">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
                   <Key className="w-5 h-5 text-warning" />
@@ -811,7 +828,7 @@ const AdminPanel = ({ onLogout }: AdminPanelProps) => {
 
         {/* Devices Tab */}
         {activeTab === "devices" && (
-          <div className="bg-card border border-border rounded-xl p-6 animate-fade-in">
+          <div className="glass-strong rounded-2xl p-6 border-gradient animate-fade-in">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
                 <Monitor className="w-5 h-5 text-warning" />
@@ -899,7 +916,7 @@ const AdminPanel = ({ onLogout }: AdminPanelProps) => {
 
         {/* Logs Tab */}
         {activeTab === "logs" && (
-          <div className="bg-card border border-border rounded-xl p-6 animate-fade-in">
+          <div className="glass-strong rounded-2xl p-6 border-gradient animate-fade-in">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
                 <FileText className="w-5 h-5 text-warning" />
