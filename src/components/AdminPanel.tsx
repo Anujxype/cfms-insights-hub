@@ -92,7 +92,7 @@ interface AdminPanelProps {
 }
 
 const AdminPanel = ({ onLogout }: AdminPanelProps) => {
-  const [activeTab, setActiveTab] = useState<"dashboard" | "keys" | "devices" | "logs">("dashboard");
+  const [activeTab, setActiveTab] = useState<"dashboard" | "keys" | "devices" | "logs" | "broadcast">("dashboard");
   const [keys, setKeys] = useState<LoginKey[]>([]);
   const [logs, setLogs] = useState<SearchLog[]>([]);
   const [devices, setDevices] = useState<DeviceLogin[]>([]);
