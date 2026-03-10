@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { API_ENDPOINTS, ApiEndpoint, fetchApiData, ApiResponse } from "@/lib/api";
 import { addSearchLog, LoginKey } from "@/lib/supabaseDatabase";
+import { getActiveBroadcastsForKey, dismissBroadcast, Broadcast } from "@/lib/broadcasts";
 import JsonDisplay from "./JsonDisplay";
 import {
   Search,
@@ -18,6 +19,9 @@ import {
   AlertTriangle,
   CalendarClock,
   Zap,
+  Bell,
+  Info,
+  X,
 } from "lucide-react";
 import { getDeviceInfo } from "@/lib/deviceFingerprint";
 
@@ -31,8 +35,24 @@ const SearchPortal = ({ userKey, onLogout }: SearchPortalProps) => {
   const [searchValue, setSearchValue] = useState("");
   const [loading, setLoading] = useState(false);
   const [response, setResponse] = useState<ApiResponse | null>(null);
+  const [broadcasts, setBroadcasts] = useState<Broadcast[]>([]);
+  const [currentBcIndex, setCurrentBcIndex] = useState(0);
 
   const deviceInfo = getDeviceInfo();
+
+  // Load broadcasts on mount
+  useEffect(() => {
+    const loadBroadcasts = async () => {
+      const active = await getActiveBroadcastsForKey(userKey.id);
+      setBroadcasts(active);
+    };
+    loadBroadcasts();
+  }, [userKey.id]);
+
+  const handleDismissBroadcast = (bcId: string) => {
+    dismissBroadcast(bcId);
+    setBroadcasts(prev => prev.filter(b => b.id !== bcId));
+  };
 
   const getExpirationWarning = () => {
     if (!userKey.expires_at) return null;
@@ -74,11 +94,64 @@ const SearchPortal = ({ userKey, onLogout }: SearchPortalProps) => {
     setLoading(false);
   };
 
+  const getPriorityStyles = (priority: string) => {
+    switch (priority) {
+      case 'urgent': return { bg: 'bg-destructive/10', border: 'border-destructive/30', icon: 'text-destructive', iconBg: 'bg-destructive/15' };
+      case 'warning': return { bg: 'bg-warning/10', border: 'border-warning/30', icon: 'text-warning', iconBg: 'bg-warning/15' };
+      default: return { bg: 'bg-primary/10', border: 'border-primary/30', icon: 'text-primary', iconBg: 'bg-primary/15' };
+    }
+  };
+
+  const getPriorityIcon = (priority: string) => {
+    switch (priority) {
+      case 'urgent': return <AlertTriangle className="w-5 h-5" />;
+      case 'warning': return <Bell className="w-5 h-5" />;
+      default: return <Info className="w-5 h-5" />;
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background grid-pattern noise-bg relative">
       {/* Ambient orbs */}
       <div className="fixed top-0 left-1/3 w-[600px] h-[400px] bg-primary/3 rounded-full blur-[150px] pointer-events-none" />
       <div className="fixed bottom-0 right-1/4 w-[500px] h-[400px] bg-accent/3 rounded-full blur-[150px] pointer-events-none" />
+
+      {/* Broadcast Modal Overlay */}
+      {broadcasts.length > 0 && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/60 backdrop-blur-sm animate-fade-in">
+          <div className={`max-w-lg w-full mx-4 rounded-2xl border p-6 shadow-2xl animate-scale-in ${getPriorityStyles(broadcasts[0].priority).bg} ${getPriorityStyles(broadcasts[0].priority).border}`}>
+            <div className="flex items-start gap-3">
+              <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${getPriorityStyles(broadcasts[0].priority).iconBg}`}>
+                <span className={getPriorityStyles(broadcasts[0].priority).icon}>
+                  {getPriorityIcon(broadcasts[0].priority)}
+                </span>
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="font-bold text-foreground text-lg mb-1">{broadcasts[0].title}</h3>
+                <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">{broadcasts[0].message}</p>
+                <p className="text-xs text-muted-foreground/50 mt-3">
+                  {new Date(broadcasts[0].created_at).toLocaleString()}
+                  {broadcasts.length > 1 && ` • ${broadcasts.length - 1} more alert${broadcasts.length > 2 ? 's' : ''}`}
+                </p>
+              </div>
+            </div>
+            <div className="flex justify-end mt-4">
+              <Button
+                variant="default"
+                size="sm"
+                onClick={() => handleDismissBroadcast(broadcasts[0].id)}
+                className={
+                  broadcasts[0].priority === 'urgent' ? 'bg-destructive text-destructive-foreground hover:bg-destructive/90' :
+                  broadcasts[0].priority === 'warning' ? 'bg-warning text-warning-foreground hover:bg-warning/90' :
+                  ''
+                }
+              >
+                {broadcasts.length > 1 ? 'Next' : 'Got it'}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Header */}
       <header className="border-b border-border/50 glass-strong sticky top-0 z-10">

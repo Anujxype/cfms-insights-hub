@@ -1012,6 +1012,215 @@ const AdminPanel = ({ onLogout }: AdminPanelProps) => {
             )}
           </div>
         )}
+
+        {/* Broadcast Tab */}
+        {activeTab === "broadcast" && (
+          <div className="space-y-6 animate-fade-in">
+            {/* Create Broadcast */}
+            <div className="glass-strong rounded-2xl p-6 border-gradient">
+              <h2 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+                <Bell className="w-5 h-5 text-warning" />
+                Send Broadcast / Alert
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div>
+                  <label className="text-sm text-muted-foreground mb-2 block">Title</label>
+                  <Input
+                    placeholder="e.g., Scheduled Maintenance"
+                    value={bcTitle}
+                    onChange={(e) => setBcTitle(e.target.value)}
+                  />
+                </div>
+                <div>
+                  <label className="text-sm text-muted-foreground mb-2 block">Priority</label>
+                  <div className="flex gap-2">
+                    {(['info', 'warning', 'urgent'] as const).map(p => (
+                      <Button
+                        key={p}
+                        variant={bcPriority === p ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setBcPriority(p)}
+                        className={bcPriority === p ? (
+                          p === 'urgent' ? 'bg-destructive text-destructive-foreground' :
+                          p === 'warning' ? 'bg-warning text-warning-foreground' :
+                          'bg-primary text-primary-foreground'
+                        ) : ''}
+                      >
+                        {p.charAt(0).toUpperCase() + p.slice(1)}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+                <div className="md:col-span-2">
+                  <label className="text-sm text-muted-foreground mb-2 block">Message</label>
+                  <Textarea
+                    placeholder="Enter broadcast message..."
+                    value={bcMessage}
+                    onChange={(e) => setBcMessage(e.target.value)}
+                    rows={3}
+                  />
+                </div>
+                <div>
+                  <label className="text-sm text-muted-foreground mb-2 block">Target</label>
+                  <div className="flex gap-2">
+                    <Button
+                      variant={bcTargetType === 'all' ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => { setBcTargetType('all'); setBcSelectedKeys([]); }}
+                    >
+                      <Users className="w-4 h-4 mr-1" />
+                      All Users
+                    </Button>
+                    <Button
+                      variant={bcTargetType === 'specific' ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setBcTargetType('specific')}
+                    >
+                      <Key className="w-4 h-4 mr-1" />
+                      Specific Keys
+                    </Button>
+                  </div>
+                </div>
+                {bcTargetType === 'specific' && (
+                  <div>
+                    <label className="text-sm text-muted-foreground mb-2 block">
+                      Select Keys ({bcSelectedKeys.length} selected)
+                    </label>
+                    <div className="max-h-[150px] overflow-y-auto space-y-1 border border-border/40 rounded-lg p-2 bg-background/30">
+                      {keys.filter(k => k.is_active).map(key => (
+                        <label key={key.id} className="flex items-center gap-2 p-1.5 rounded hover:bg-secondary/30 cursor-pointer text-sm">
+                          <input
+                            type="checkbox"
+                            checked={bcSelectedKeys.includes(key.id)}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setBcSelectedKeys(prev => [...prev, key.id]);
+                              } else {
+                                setBcSelectedKeys(prev => prev.filter(id => id !== key.id));
+                              }
+                            }}
+                            className="rounded"
+                          />
+                          <span className="text-foreground">{key.name}</span>
+                          <span className="text-muted-foreground font-mono text-xs ml-auto">{key.key}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+              <Button
+                onClick={async () => {
+                  if (!bcTitle.trim() || !bcMessage.trim()) {
+                    toast.error("Title and message are required");
+                    return;
+                  }
+                  if (bcTargetType === 'specific' && bcSelectedKeys.length === 0) {
+                    toast.error("Select at least one key");
+                    return;
+                  }
+                  const result = await createBroadcast(
+                    bcTitle.trim(),
+                    bcMessage.trim(),
+                    bcTargetType,
+                    bcTargetType === 'specific' ? bcSelectedKeys : null,
+                    bcPriority
+                  );
+                  if (result) {
+                    toast.success("Broadcast sent successfully!");
+                    setBcTitle(""); setBcMessage(""); setBcSelectedKeys([]); setBcTargetType("all"); setBcPriority("info");
+                    refreshData();
+                  } else {
+                    toast.error("Failed to send broadcast");
+                  }
+                }}
+                className="bg-warning text-warning-foreground hover:bg-warning/90"
+              >
+                <Bell className="w-4 h-4 mr-2" />
+                Send Broadcast
+              </Button>
+            </div>
+
+            {/* Existing Broadcasts */}
+            <div className="glass-strong rounded-2xl p-6 border-gradient">
+              <h2 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+                <FileText className="w-5 h-5 text-warning" />
+                Broadcast History ({broadcasts.length})
+              </h2>
+              {broadcasts.length === 0 ? (
+                <p className="text-muted-foreground text-center py-8">No broadcasts sent yet</p>
+              ) : (
+                <div className="space-y-3">
+                  {broadcasts.map(bc => (
+                    <div key={bc.id} className={`p-4 rounded-xl border ${
+                      !bc.is_active ? 'opacity-50 border-border/30' :
+                      bc.priority === 'urgent' ? 'border-destructive/30 bg-destructive/5' :
+                      bc.priority === 'warning' ? 'border-warning/30 bg-warning/5' :
+                      'border-primary/30 bg-primary/5'
+                    }`}>
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            <h3 className="font-semibold text-foreground text-sm">{bc.title}</h3>
+                            <Badge variant="outline" className={`text-[10px] ${
+                              bc.priority === 'urgent' ? 'border-destructive/40 text-destructive' :
+                              bc.priority === 'warning' ? 'border-warning/40 text-warning' :
+                              'border-primary/40 text-primary'
+                            }`}>
+                              {bc.priority}
+                            </Badge>
+                            <Badge variant="outline" className="text-[10px]">
+                              {bc.target_type === 'all' ? 'All Users' : `${bc.target_key_ids?.length || 0} Keys`}
+                            </Badge>
+                            {!bc.is_active && <Badge variant="secondary" className="text-[10px]">Inactive</Badge>}
+                          </div>
+                          <p className="text-sm text-muted-foreground">{bc.message}</p>
+                          <p className="text-xs text-muted-foreground/60 mt-1">
+                            {new Date(bc.created_at).toLocaleString()}
+                            {bc.target_type === 'specific' && bc.target_key_ids && (
+                              <span className="ml-2">
+                                → {bc.target_key_ids.map(id => keys.find(k => k.id === id)?.name || 'Unknown').join(', ')}
+                              </span>
+                            )}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-1 flex-shrink-0">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8"
+                            onClick={async () => {
+                              await toggleBroadcastStatus(bc.id, !bc.is_active);
+                              refreshData();
+                              toast.success(bc.is_active ? "Broadcast deactivated" : "Broadcast reactivated");
+                            }}
+                            title={bc.is_active ? "Deactivate" : "Activate"}
+                          >
+                            {bc.is_active ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-destructive"
+                            onClick={async () => {
+                              if (confirm("Delete this broadcast?")) {
+                                await deleteBroadcast(bc.id);
+                                refreshData();
+                                toast.success("Broadcast deleted");
+                              }
+                            }}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </main>
 
       {/* Password Change Modal */}
