@@ -112,6 +112,12 @@ const AdminPanel = ({ onLogout }: AdminPanelProps) => {
   });
   const [selectedKeyDevices, setSelectedKeyDevices] = useState<string | null>(null);
   const [showPasswordChange, setShowPasswordChange] = useState(false);
+  const [broadcasts, setBroadcasts] = useState<Broadcast[]>([]);
+  const [bcTitle, setBcTitle] = useState("");
+  const [bcMessage, setBcMessage] = useState("");
+  const [bcPriority, setBcPriority] = useState<"info" | "warning" | "urgent">("info");
+  const [bcTargetType, setBcTargetType] = useState<"all" | "specific">("all");
+  const [bcSelectedKeys, setBcSelectedKeys] = useState<string[]>([]);
   const [loginNotifications, setLoginNotifications] = useState<Array<{
     id: string;
     keyName: string;
