@@ -186,16 +186,18 @@ const AdminPanel = ({ onLogout }: AdminPanelProps) => {
 
   const refreshData = async () => {
     setLoading(true);
-    const [keysData, logsData, devicesData, statsData] = await Promise.all([
+    const [keysData, logsData, devicesData, statsData, broadcastsData] = await Promise.all([
       getAllKeys(),
       getAllLogs(),
       getAllDevices(),
       getDashboardStats(),
+      getAllBroadcasts(),
     ]);
     setKeys(keysData);
     setLogs(logsData);
     setDevices(devicesData);
     setStats(statsData);
+    setBroadcasts(broadcastsData);
     previousDeviceCountRef.current = devicesData.length;
     setLoading(false);
   };
