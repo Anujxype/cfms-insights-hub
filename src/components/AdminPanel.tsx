@@ -126,27 +126,24 @@ const AdminPanel = ({ onLogout }: AdminPanelProps) => {
       .channel('admin_login_notifications')
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'device_logins' }, (payload) => {
         const newDevice = payload.new as any;
-        const notification = {
-          id: newDevice.id,
-          keyName: 'Loading...',
-          device: `${newDevice.browser || 'Unknown'} on ${newDevice.os || 'Unknown'}`,
-          location: newDevice.location || 'Unknown',
-          time: new Date(),
-        };
+        const device = `${newDevice.browser || 'Unknown'} on ${newDevice.os || 'Unknown'}`;
+        const location = newDevice.location || 'Unknown';
 
-        // Get key name
+        // Get key name then push notification
         supabase.from('login_keys').select('name').eq('id', newDevice.key_id).single().then(({ data }) => {
-          if (data) {
-            notification.keyName = data.name;
-            setLoginNotifications(prev => [notification, ...prev].slice(0, 20));
-            toast.info(`🔔 New Login: ${data.name}`, {
-              description: `${notification.device} from ${notification.location}`,
-              duration: 8000,
-            });
-          }
+          const notification = {
+            id: newDevice.id,
+            keyName: data?.name || 'Unknown Key',
+            device,
+            location,
+            time: new Date(),
+          };
+          setLoginNotifications(prev => [notification, ...prev].slice(0, 20));
+          toast.info(`🔔 New Login: ${notification.keyName}`, {
+            description: `${device} from ${location}`,
+            duration: 8000,
+          });
         });
-
-        setLoginNotifications(prev => [notification, ...prev].slice(0, 20));
       })
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'device_logins' }, (payload) => {
         const updated = payload.new as any;
