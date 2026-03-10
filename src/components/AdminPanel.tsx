@@ -377,9 +377,10 @@ const AdminPanel = ({ onLogout }: AdminPanelProps) => {
         <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
           {[
             { id: 'dashboard', icon: BarChart3, label: 'Dashboard' },
-            { id: 'keys', icon: Key, label: 'Access Keys' },
+           { id: 'keys', icon: Key, label: 'Access Keys' },
             { id: 'devices', icon: Monitor, label: 'Devices' },
             { id: 'logs', icon: FileText, label: 'Search Logs' },
+            { id: 'broadcast', icon: Bell, label: 'Broadcast' },
           ].map((tab) => (
             <Button
               key={tab.id}
