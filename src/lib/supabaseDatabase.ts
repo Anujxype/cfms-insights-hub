@@ -206,21 +206,48 @@ export const createKey = async (
   expiresAt?: string | null,
   allowedIps?: string[] | null
 ): Promise<LoginKey | null> => {
+  // Build insert object with required fields
+  const insertData: Record<string, unknown> = {
+    key: keyValue,
+    name,
+    max_devices: maxDevices,
+    usage_count: 0,
+    is_active: true,
+  };
+
+  // Add optional fields if provided
+  if (expiresAt) insertData.expires_at = expiresAt;
+  if (allowedIps && allowedIps.length > 0) insertData.allowed_ips = allowedIps;
+
   const { data, error } = await supabase
     .from('login_keys')
-    .insert({
-      key: keyValue,
-      name,
-      max_devices: maxDevices,
-      usage_count: 0,
-      is_active: true,
-      expires_at: expiresAt || null,
-      allowed_ips: allowedIps && allowedIps.length > 0 ? allowedIps : null,
-    })
+    .insert(insertData)
     .select()
     .single();
 
   if (error) {
+    // If the error is about missing columns, retry without them
+    if (error.code === 'PGRST204' || error.message?.includes('column')) {
+      console.warn('Optional columns not found, retrying without expires_at/allowed_ips');
+      const { data: fallbackData, error: fallbackError } = await supabase
+        .from('login_keys')
+        .insert({
+          key: keyValue,
+          name,
+          max_devices: maxDevices,
+          usage_count: 0,
+          is_active: true,
+        })
+        .select()
+        .single();
+
+      if (fallbackError) {
+        console.error('Failed to create key (fallback):', fallbackError);
+        return null;
+      }
+      return fallbackData as LoginKey;
+    }
+
     console.error('Failed to create key:', error);
     return null;
   }
