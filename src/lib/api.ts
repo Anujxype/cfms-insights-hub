@@ -9,6 +9,7 @@ export interface ApiEndpoint {
   parameter: string;
   placeholder: string;
   description: string;
+  icon: string; // lucide icon name
 }
 
 export const API_ENDPOINTS: ApiEndpoint[] = [
@@ -19,6 +20,7 @@ export const API_ENDPOINTS: ApiEndpoint[] = [
     parameter: 'number',
     placeholder: 'Enter mobile number',
     description: 'Get details by mobile number',
+    icon: 'smartphone',
   },
   {
     id: 'aadhaar',
@@ -27,6 +29,7 @@ export const API_ENDPOINTS: ApiEndpoint[] = [
     parameter: 'id',
     placeholder: 'Enter Aadhaar ID',
     description: 'Get details by Aadhaar ID',
+    icon: 'fingerprint',
   },
   {
     id: 'gst',
@@ -35,6 +38,7 @@ export const API_ENDPOINTS: ApiEndpoint[] = [
     parameter: 'number',
     placeholder: 'Enter GST number',
     description: 'Get GST registration details',
+    icon: 'receipt',
   },
   {
     id: 'telegram',
@@ -43,6 +47,7 @@ export const API_ENDPOINTS: ApiEndpoint[] = [
     parameter: 'user',
     placeholder: 'Enter Telegram username',
     description: 'Get Telegram user details',
+    icon: 'send',
   },
   {
     id: 'ifsc',
@@ -51,6 +56,7 @@ export const API_ENDPOINTS: ApiEndpoint[] = [
     parameter: 'code',
     placeholder: 'Enter IFSC code',
     description: 'Get bank branch details',
+    icon: 'landmark',
   },
   {
     id: 'rashan',
@@ -59,6 +65,7 @@ export const API_ENDPOINTS: ApiEndpoint[] = [
     parameter: 'aadhaar',
     placeholder: 'Enter Aadhaar number',
     description: 'Get ration card details',
+    icon: 'wheat',
   },
   {
     id: 'upi',
@@ -67,6 +74,7 @@ export const API_ENDPOINTS: ApiEndpoint[] = [
     parameter: 'id',
     placeholder: 'Enter UPI ID',
     description: 'Get UPI account details',
+    icon: 'wallet',
   },
   {
     id: 'upi2',
@@ -75,6 +83,7 @@ export const API_ENDPOINTS: ApiEndpoint[] = [
     parameter: 'id',
     placeholder: 'Enter UPI ID',
     description: 'Get extended UPI details',
+    icon: 'credit-card',
   },
   {
     id: 'vehicle',
@@ -83,6 +92,7 @@ export const API_ENDPOINTS: ApiEndpoint[] = [
     parameter: 'registration',
     placeholder: 'Enter registration number',
     description: 'Get vehicle registration details',
+    icon: 'car',
   },
   {
     id: 'v2',
@@ -91,6 +101,7 @@ export const API_ENDPOINTS: ApiEndpoint[] = [
     parameter: 'query',
     placeholder: 'Enter search query',
     description: 'General purpose search',
+    icon: 'search',
   },
   {
     id: 'pan',
@@ -99,6 +110,7 @@ export const API_ENDPOINTS: ApiEndpoint[] = [
     parameter: 'pan',
     placeholder: 'Enter PAN number',
     description: 'Get PAN card details',
+    icon: 'id-card',
   },
   {
     id: 'email',
@@ -107,6 +119,7 @@ export const API_ENDPOINTS: ApiEndpoint[] = [
     parameter: 'address',
     placeholder: 'Enter email address',
     description: 'Get details by email address',
+    icon: 'mail',
   },
 ];
 

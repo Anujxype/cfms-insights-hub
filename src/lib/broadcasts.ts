@@ -22,32 +22,48 @@ export const getDismissedBroadcasts = (): string[] => {
   }
 };
 
-// Mark a broadcast as dismissed
+// Mark a broadcast as dismissed - stores persistently
 export const dismissBroadcast = (broadcastId: string) => {
   const dismissed = getDismissedBroadcasts();
   if (!dismissed.includes(broadcastId)) {
     dismissed.push(broadcastId);
-    localStorage.setItem(DISMISSED_KEY, JSON.stringify(dismissed));
+    try {
+      localStorage.setItem(DISMISSED_KEY, JSON.stringify(dismissed));
+    } catch {
+      // localStorage full - keep in memory at least
+    }
   }
+};
+
+// Check if a broadcast was already dismissed
+export const isBroadcastDismissed = (broadcastId: string): boolean => {
+  return getDismissedBroadcasts().includes(broadcastId);
 };
 
 // Fetch active broadcasts for a specific key (unseen only)
 export const getActiveBroadcastsForKey = async (keyId: string): Promise<Broadcast[]> => {
-  const { data, error } = await supabase
-    .from('broadcasts')
-    .select('*')
-    .eq('is_active', true)
-    .order('created_at', { ascending: false });
+  try {
+    const { data, error } = await supabase
+      .from('broadcasts')
+      .select('*')
+      .eq('is_active', true)
+      .order('created_at', { ascending: false });
 
-  if (error || !data) return [];
+    if (error || !data) return [];
 
-  const dismissed = getDismissedBroadcasts();
+    const dismissed = getDismissedBroadcasts();
 
-  return (data as Broadcast[]).filter(b => {
-    if (dismissed.includes(b.id)) return false;
-    if (b.target_type === 'all') return true;
-    return b.target_key_ids?.includes(keyId) ?? false;
-  });
+    return (data as Broadcast[]).filter(b => {
+      // Skip already dismissed broadcasts
+      if (dismissed.includes(b.id)) return false;
+      // Show to all users
+      if (b.target_type === 'all') return true;
+      // Show only to targeted keys
+      return b.target_key_ids?.includes(keyId) ?? false;
+    });
+  } catch {
+    return [];
+  }
 };
 
 // Admin: get all broadcasts
