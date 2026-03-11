@@ -109,14 +109,14 @@ const JsonDisplay = ({ data, className }: JsonDisplayProps) => {
   return (
     <div className="relative group">
       {/* Action buttons */}
-      <div className="absolute top-2 right-2 z-10 flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+      <div className="absolute top-2 right-2 z-10 flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-all duration-300">
         <button
           onClick={handleCopy}
           className={cn(
-            "flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all duration-300 border",
+            "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-300 border backdrop-blur-md",
             copied
-              ? "bg-success/15 border-success/30 text-success scale-105"
-              : "bg-background/80 backdrop-blur-sm border-border/50 text-muted-foreground hover:text-foreground hover:border-primary/30 hover:bg-primary/5 active:scale-95"
+              ? "bg-success/20 border-success/40 text-success scale-105 shadow-[0_0_12px_hsl(var(--success)/0.3)]"
+              : "bg-primary/10 border-primary/25 text-primary/80 hover:text-primary hover:border-primary/50 hover:bg-primary/20 hover:shadow-[0_0_15px_hsl(var(--primary)/0.25)] active:scale-95"
           )}
           title="Copy to clipboard"
         >
@@ -128,10 +128,10 @@ const JsonDisplay = ({ data, className }: JsonDisplayProps) => {
         <button
           onClick={handleDownload}
           className={cn(
-            "flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all duration-300 border",
+            "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-300 border backdrop-blur-md",
             downloaded
-              ? "bg-success/15 border-success/30 text-success scale-105"
-              : "bg-background/80 backdrop-blur-sm border-border/50 text-muted-foreground hover:text-foreground hover:border-primary/30 hover:bg-primary/5 active:scale-95"
+              ? "bg-success/20 border-success/40 text-success scale-105 shadow-[0_0_12px_hsl(var(--success)/0.3)]"
+              : "bg-accent/10 border-accent/25 text-accent/80 hover:text-accent hover:border-accent/50 hover:bg-accent/20 hover:shadow-[0_0_15px_hsl(var(--accent)/0.25)] active:scale-95"
           )}
           title="Download as .txt"
         >
