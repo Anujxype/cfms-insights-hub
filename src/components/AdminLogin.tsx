@@ -40,9 +40,9 @@ const AdminLogin = ({ onLogin, onBack }: AdminLoginProps) => {
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 grid-pattern noise-bg relative overflow-hidden">
-      {/* Ambient orbs — warm tones for admin */}
-      <div className="absolute top-1/3 left-1/3 w-96 h-96 bg-warning/5 rounded-full blur-[120px] animate-float" />
-      <div className="absolute bottom-1/3 right-1/3 w-80 h-80 bg-accent/4 rounded-full blur-[120px] animate-float" style={{ animationDelay: '2s' }} />
+      {/* Ambient orbs — purple tones for admin */}
+      <div className="absolute top-1/3 left-1/3 w-96 h-96 bg-accent/5 rounded-full blur-[120px] animate-float" />
+      <div className="absolute bottom-1/3 right-1/3 w-80 h-80 bg-primary/4 rounded-full blur-[120px] animate-float" style={{ animationDelay: '2s' }} />
 
       <div className="w-full max-w-md relative z-10">
         {/* Back Button */}
@@ -58,7 +58,7 @@ const AdminLogin = ({ onLogin, onBack }: AdminLoginProps) => {
         {/* Logo/Brand */}
         <div className="text-center mb-10 animate-fade-in">
           <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl glass border-gradient mb-5 animate-float">
-            <ShieldCheck className="w-10 h-10 text-warning" />
+            <ShieldCheck className="w-10 h-10 text-accent" />
           </div>
           <h1 className="text-4xl font-bold text-foreground mb-2">
             Admin Panel
@@ -69,16 +69,16 @@ const AdminLogin = ({ onLogin, onBack }: AdminLoginProps) => {
         </div>
 
         {/* Login Card */}
-        <div className="glass-strong rounded-2xl p-8 shadow-2xl shadow-black/20 animate-scale-in relative overflow-hidden">
+        <div className="glass-strong rounded-2xl p-6 sm:p-8 shadow-2xl shadow-black/20 animate-scale-in relative overflow-hidden">
           {/* Animated top line */}
           <div className="absolute top-0 left-0 right-0 h-px overflow-hidden rounded-t-2xl">
-            <div className="h-full w-1/2 bg-gradient-to-r from-transparent via-warning/60 to-transparent animate-glow-line" />
+            <div className="h-full w-1/2 bg-gradient-to-r from-transparent via-accent/60 to-transparent animate-glow-line" />
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
               <label className="text-sm font-medium text-foreground flex items-center gap-2">
-                <Lock className="w-4 h-4 text-warning" />
+                <Lock className="w-4 h-4 text-accent" />
                 Admin Password
               </label>
               <Input
@@ -86,7 +86,7 @@ const AdminLogin = ({ onLogin, onBack }: AdminLoginProps) => {
                 placeholder="Enter admin password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="h-12 bg-background/50 border-border/60 focus:border-warning/50 transition-all duration-300"
+                className="h-12 bg-background/50 border-border/60 focus:border-accent/50 transition-all duration-300"
                 disabled={loading}
               />
             </div>
@@ -101,7 +101,7 @@ const AdminLogin = ({ onLogin, onBack }: AdminLoginProps) => {
             <Button
               type="submit"
               size="xl"
-              className="w-full bg-warning text-warning-foreground hover:bg-warning/85 font-semibold shadow-[0_0_20px_hsl(42_95%_55%/0.2)] hover:shadow-[0_0_30px_hsl(42_95%_55%/0.35)] transition-all duration-300"
+              className="w-full bg-accent text-accent-foreground hover:bg-accent/85 font-semibold shadow-[0_0_20px_hsl(var(--accent)/0.25)] hover:shadow-[0_0_30px_hsl(var(--accent)/0.4)] transition-all duration-300"
               disabled={loading || !password.trim()}
             >
               {loading ? (
