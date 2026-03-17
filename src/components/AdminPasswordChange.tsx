@@ -27,7 +27,6 @@ const AdminPasswordChange = ({ onClose }: AdminPasswordChangeProps) => {
     const next = newPassword.trim();
     const confirm = confirmPassword.trim();
 
-    // Validation
     if (!current || !next || !confirm) {
       setError("All fields are required");
       return;
@@ -68,14 +67,14 @@ const AdminPasswordChange = ({ onClose }: AdminPasswordChangeProps) => {
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-card border border-border rounded-xl p-6 w-full max-w-md animate-fade-in">
+      <div className="bg-card border border-border rounded-xl p-4 sm:p-6 w-full max-w-md animate-fade-in max-h-[90vh] overflow-y-auto">
         <div className="flex items-center gap-3 mb-6">
-          <div className="p-2 rounded-lg bg-warning/10 border border-warning/20">
-            <Lock className="w-5 h-5 text-warning" />
+          <div className="p-2 rounded-lg bg-accent/10 border border-accent/20">
+            <Lock className="w-5 h-5 text-accent" />
           </div>
           <div>
-            <h2 className="text-xl font-bold text-foreground">Change Admin Password</h2>
-            <p className="text-sm text-muted-foreground">Update your admin panel access credentials</p>
+            <h2 className="text-lg sm:text-xl font-bold text-foreground">Change Admin Password</h2>
+            <p className="text-xs sm:text-sm text-muted-foreground">Update your admin panel access credentials</p>
           </div>
         </div>
 
@@ -148,11 +147,11 @@ const AdminPasswordChange = ({ onClose }: AdminPasswordChangeProps) => {
 
           {/* Password Requirements */}
           <div className="text-xs text-muted-foreground space-y-1">
-            <p className={newPassword.length >= 6 ? "text-green-500" : ""}>
+            <p className={newPassword.length >= 6 ? "text-success" : ""}>
               {newPassword.length >= 6 ? <Check className="w-3 h-3 inline mr-1" /> : "• "}
               At least 6 characters
             </p>
-            <p className={newPassword === confirmPassword && confirmPassword ? "text-green-500" : ""}>
+            <p className={newPassword === confirmPassword && confirmPassword ? "text-success" : ""}>
               {newPassword === confirmPassword && confirmPassword ? <Check className="w-3 h-3 inline mr-1" /> : "• "}
               Passwords match
             </p>
@@ -180,7 +179,7 @@ const AdminPasswordChange = ({ onClose }: AdminPasswordChangeProps) => {
             <Button
               type="submit"
               disabled={loading || !currentPassword || !newPassword || !confirmPassword}
-              className="flex-1 bg-warning text-warning-foreground hover:bg-warning/90"
+              className="flex-1 bg-accent text-accent-foreground hover:bg-accent/90"
             >
               {loading ? (
                 <>
