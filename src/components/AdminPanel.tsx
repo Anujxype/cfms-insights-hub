@@ -20,6 +20,8 @@ import {
   subscribeToKeys,
   subscribeToDevices,
   subscribeToLogs,
+  killSessionsForKey,
+  killDeviceSession,
   LoginKey,
   SearchLog,
   DeviceLogin,
@@ -57,6 +59,7 @@ import {
   Shield,
   Bell,
   Wifi,
+  Zap,
   X,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -241,8 +244,25 @@ const AdminPanel = ({ onLogout }: AdminPanelProps) => {
     const success = await updateKeyStatus(id, !currentStatus);
     if (success) {
       toast.success(currentStatus ? "Key deactivated" : "Key activated");
+      // If deactivating, also kill all active sessions for this key
+      if (currentStatus) {
+        await killSessionsForKey(id, "Your access key has been disabled by admin.");
+        toast.success("All active sessions terminated");
+      }
       refreshData();
     }
+  };
+
+  const handleKillSessions = async (keyId: string, keyName: string) => {
+    if (confirm(`Kill all active sessions for "${keyName}"? Users will be logged out immediately.`)) {
+      await killSessionsForKey(keyId, "Your session has been terminated by admin.");
+      toast.success(`All sessions killed for ${keyName}`);
+    }
+  };
+
+  const handleKillDeviceSession = async (keyId: string, deviceId: string) => {
+    await killDeviceSession(keyId, deviceId, "Your session has been terminated by admin.");
+    toast.success("Device session killed");
   };
 
   const handleBlockDevice = async (deviceId: string) => {
@@ -801,6 +821,15 @@ const AdminPanel = ({ onLogout }: AdminPanelProps) => {
                                   <Button
                                     variant="ghost"
                                     size="icon"
+                                    onClick={() => handleKillSessions(key.id, key.name)}
+                                    title="Kill all sessions"
+                                    className="text-accent hover:text-accent"
+                                  >
+                                    <Zap className="w-4 h-4" />
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
                                     onClick={() => handleToggleKeyStatus(key.id, key.is_active)}
                                     title={key.is_active ? "Deactivate" : "Activate"}
                                   >
@@ -897,6 +926,9 @@ const AdminPanel = ({ onLogout }: AdminPanelProps) => {
                             </TableCell>
                             <TableCell className="text-right">
                               <div className="flex items-center justify-end gap-1">
+                                <Button size="sm" variant="ghost" className="text-accent" onClick={() => handleKillDeviceSession(device.key_id, device.device_id)} title="Kill session">
+                                  <Zap className="w-4 h-4" />
+                                </Button>
                                 {device.is_blocked ? (
                                   <Button size="sm" variant="outline" onClick={() => handleUnblockDevice(device.id)}>
                                     Unblock

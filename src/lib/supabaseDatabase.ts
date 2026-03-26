@@ -478,6 +478,46 @@ export const generateRandomKey = (): string => {
   ).join('-');
 };
 
+// Kill all sessions for a key via Realtime Broadcast
+export const killSessionsForKey = async (keyId: string, reason?: string): Promise<boolean> => {
+  const channel = supabase.channel(`session_kill_${keyId}`);
+  
+  await channel.subscribe();
+  
+  await channel.send({
+    type: 'broadcast',
+    event: 'kill_session',
+    payload: {
+      target: 'all',
+      reason: reason || 'Your session has been terminated by admin.',
+    },
+  });
+
+  // Give a moment for the message to propagate, then unsubscribe
+  setTimeout(() => supabase.removeChannel(channel), 2000);
+  return true;
+};
+
+// Kill a specific device session
+export const killDeviceSession = async (keyId: string, deviceId: string, reason?: string): Promise<boolean> => {
+  const channel = supabase.channel(`session_kill_${keyId}`);
+  
+  await channel.subscribe();
+  
+  await channel.send({
+    type: 'broadcast',
+    event: 'kill_session',
+    payload: {
+      target: 'device',
+      target_device: deviceId,
+      reason: reason || 'Your session has been terminated by admin.',
+    },
+  });
+
+  setTimeout(() => supabase.removeChannel(channel), 2000);
+  return true;
+};
+
 // Subscribe to real-time updates
 export const subscribeToKeys = (callback: (keys: LoginKey[]) => void) => {
   return supabase

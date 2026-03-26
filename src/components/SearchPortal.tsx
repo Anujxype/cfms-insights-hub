@@ -1,9 +1,11 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { API_ENDPOINTS, ApiEndpoint, fetchApiData, ApiResponse } from "@/lib/api";
 import { addSearchLog, LoginKey } from "@/lib/supabaseDatabase";
 import { getActiveBroadcastsForKey, dismissBroadcast, Broadcast } from "@/lib/broadcasts";
+import { supabase } from "@/integrations/supabase/client";
+import { getStoredDeviceId } from "@/lib/deviceFingerprint";
 import JsonDisplay from "./JsonDisplay";
 import EndpointIcon from "./EndpointIcon";
 import {
@@ -25,6 +27,7 @@ import {
   X,
 } from "lucide-react";
 import { getDeviceInfo } from "@/lib/deviceFingerprint";
+import { toast } from "sonner";
 
 interface SearchPortalProps {
   userKey: LoginKey;
@@ -52,6 +55,63 @@ const SearchPortal = ({ userKey, onLogout }: SearchPortalProps) => {
     };
     loadBroadcasts();
   }, [userKey.id]);
+
+  // Real-time key status monitoring — auto-logout if key is disabled
+  useEffect(() => {
+    const channel = supabase
+      .channel('key_status_monitor')
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'login_keys',
+        filter: `id=eq.${userKey.id}`,
+      }, (payload) => {
+        const updated = payload.new as any;
+        if (updated.is_active === false) {
+          toast.error("Your access key has been disabled by admin.", { duration: 5000 });
+          setTimeout(() => onLogout(), 1500);
+        }
+      })
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+  }, [userKey.id, onLogout]);
+
+  // Listen for admin session kill signal via Realtime Broadcast
+  useEffect(() => {
+    const deviceId = getStoredDeviceId();
+    const channel = supabase
+      .channel(`session_kill_${userKey.id}`)
+      .on('broadcast', { event: 'kill_session' }, (payload) => {
+        const msg = payload.payload as any;
+        // Kill if target is 'all' or matches this device
+        if (msg.target === 'all' || msg.target_device === deviceId) {
+          toast.error(msg.reason || "Your session has been terminated by admin.", { duration: 5000 });
+          setTimeout(() => onLogout(), 1500);
+        }
+      })
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+  }, [userKey.id, onLogout]);
+
+  // Also poll key status every 30s as fallback
+  useEffect(() => {
+    const interval = setInterval(async () => {
+      const { data } = await supabase
+        .from('login_keys')
+        .select('is_active')
+        .eq('id', userKey.id)
+        .single();
+      
+      if (data && !data.is_active) {
+        toast.error("Your access key has been disabled.", { duration: 5000 });
+        setTimeout(() => onLogout(), 1500);
+      }
+    }, 30000);
+
+    return () => clearInterval(interval);
+  }, [userKey.id, onLogout]);
 
   const handleDismissBroadcast = (bcId: string) => {
     dismissBroadcast(bcId);
