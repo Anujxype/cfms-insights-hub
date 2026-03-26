@@ -222,10 +222,10 @@
   /* Enhanced grid pattern with subtle gradient */
   .grid-pattern {
     background-image: 
-      radial-gradient(ellipse at 20% 50%, hsl(171 80% 46% / 0.04) 0%, transparent 60%),
-      radial-gradient(ellipse at 80% 50%, hsl(260 60% 58% / 0.03) 0%, transparent 60%),
-      linear-gradient(hsl(171 80% 46% / 0.025) 1px, transparent 1px),
-      linear-gradient(90deg, hsl(171 80% 46% / 0.025) 1px, transparent 1px);
+      radial-gradient(ellipse at 20% 50%, hsl(260 60% 58% / 0.04) 0%, transparent 60%),
+      radial-gradient(ellipse at 80% 50%, hsl(171 80% 46% / 0.03) 0%, transparent 60%),
+      linear-gradient(hsl(260 60% 58% / 0.025) 1px, transparent 1px),
+      linear-gradient(90deg, hsl(260 60% 58% / 0.025) 1px, transparent 1px);
     background-size: 100% 100%, 100% 100%, 60px 60px, 60px 60px;
   }
 
