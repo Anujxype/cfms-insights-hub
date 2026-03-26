@@ -243,8 +243,25 @@ const AdminPanel = ({ onLogout }: AdminPanelProps) => {
     const success = await updateKeyStatus(id, !currentStatus);
     if (success) {
       toast.success(currentStatus ? "Key deactivated" : "Key activated");
+      // If deactivating, also kill all active sessions for this key
+      if (currentStatus) {
+        await killSessionsForKey(id, "Your access key has been disabled by admin.");
+        toast.success("All active sessions terminated");
+      }
       refreshData();
     }
+  };
+
+  const handleKillSessions = async (keyId: string, keyName: string) => {
+    if (confirm(`Kill all active sessions for "${keyName}"? Users will be logged out immediately.`)) {
+      await killSessionsForKey(keyId, "Your session has been terminated by admin.");
+      toast.success(`All sessions killed for ${keyName}`);
+    }
+  };
+
+  const handleKillDeviceSession = async (keyId: string, deviceId: string) => {
+    await killDeviceSession(keyId, deviceId, "Your session has been terminated by admin.");
+    toast.success("Device session killed");
   };
 
   const handleBlockDevice = async (deviceId: string) => {
