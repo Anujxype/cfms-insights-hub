@@ -259,7 +259,7 @@
 
   /* Gradient text */
   .gradient-text {
-    background: linear-gradient(135deg, hsl(171 80% 46%), hsl(260 60% 65%));
+    background: linear-gradient(135deg, hsl(260 60% 65%), hsl(171 80% 46%));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
