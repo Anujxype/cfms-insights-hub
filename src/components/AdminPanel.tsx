@@ -926,6 +926,9 @@ const AdminPanel = ({ onLogout }: AdminPanelProps) => {
                             </TableCell>
                             <TableCell className="text-right">
                               <div className="flex items-center justify-end gap-1">
+                                <Button size="sm" variant="ghost" className="text-accent" onClick={() => handleKillDeviceSession(device.key_id, device.device_id)} title="Kill session">
+                                  <Zap className="w-4 h-4" />
+                                </Button>
                                 {device.is_blocked ? (
                                   <Button size="sm" variant="outline" onClick={() => handleUnblockDevice(device.id)}>
                                     Unblock
