@@ -20,6 +20,8 @@ import {
   subscribeToKeys,
   subscribeToDevices,
   subscribeToLogs,
+  killSessionsForKey,
+  killDeviceSession,
   LoginKey,
   SearchLog,
   DeviceLogin,
