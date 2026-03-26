@@ -59,6 +59,7 @@ import {
   Shield,
   Bell,
   Wifi,
+  Zap,
   X,
 } from "lucide-react";
 import { toast } from "sonner";
