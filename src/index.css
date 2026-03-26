@@ -246,8 +246,8 @@
   }
   .card-hover:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 30px hsl(225 30% 0% / 0.4), 0 0 20px hsl(171 80% 46% / 0.06);
-    border-color: hsl(171 80% 46% / 0.2);
+    box-shadow: 0 8px 30px hsl(225 30% 0% / 0.4), 0 0 20px hsl(260 60% 58% / 0.06);
+    border-color: hsl(260 60% 58% / 0.2);
   }
 
   /* Stagger animation helper */
