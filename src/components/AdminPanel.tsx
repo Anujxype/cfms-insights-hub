@@ -820,6 +820,15 @@ const AdminPanel = ({ onLogout }: AdminPanelProps) => {
                                   <Button
                                     variant="ghost"
                                     size="icon"
+                                    onClick={() => handleKillSessions(key.id, key.name)}
+                                    title="Kill all sessions"
+                                    className="text-accent hover:text-accent"
+                                  >
+                                    <Zap className="w-4 h-4" />
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
                                     onClick={() => handleToggleKeyStatus(key.id, key.is_active)}
                                     title={key.is_active ? "Deactivate" : "Activate"}
                                   >
