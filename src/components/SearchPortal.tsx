@@ -1,9 +1,11 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { API_ENDPOINTS, ApiEndpoint, fetchApiData, ApiResponse } from "@/lib/api";
 import { addSearchLog, LoginKey } from "@/lib/supabaseDatabase";
 import { getActiveBroadcastsForKey, dismissBroadcast, Broadcast } from "@/lib/broadcasts";
+import { supabase } from "@/integrations/supabase/client";
+import { getStoredDeviceId } from "@/lib/deviceFingerprint";
 import JsonDisplay from "./JsonDisplay";
 import EndpointIcon from "./EndpointIcon";
 import {
@@ -25,6 +27,7 @@ import {
   X,
 } from "lucide-react";
 import { getDeviceInfo } from "@/lib/deviceFingerprint";
+import { toast } from "sonner";
 
 interface SearchPortalProps {
   userKey: LoginKey;
