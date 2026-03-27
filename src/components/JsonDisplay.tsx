@@ -1,6 +1,7 @@
 import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { Copy, Check, Download, Sparkles } from "lucide-react";
+import { Copy, Check, Download } from "lucide-react";
 
 interface JsonDisplayProps {
   data: unknown;
@@ -57,17 +58,13 @@ const JsonDisplay = ({ data, className }: JsonDisplayProps) => {
     }
     if (typeof obj === "boolean") {
       elements.push(
-        <span key="bool" className="text-[hsl(280_80%_65%)] font-semibold animate-fade-in">
-          {obj.toString()}
-        </span>
+        <span key="bool" className="text-[hsl(280_80%_65%)] font-semibold">{obj.toString()}</span>
       );
       return elements;
     }
     if (typeof obj === "number") {
       elements.push(
-        <span key="num" className="text-[hsl(171_80%_50%)] font-medium tabular-nums">
-          {obj}
-        </span>
+        <span key="num" className="text-[hsl(171_80%_50%)] font-medium tabular-nums">{obj}</span>
       );
       return elements;
     }
@@ -118,45 +115,67 @@ const JsonDisplay = ({ data, className }: JsonDisplayProps) => {
   };
 
   return (
-    <div className="relative group animate-fade-in">
-      {/* Action buttons — always visible on mobile, hover on desktop */}
-      <div className="absolute top-2 right-2 z-10 flex items-center gap-1.5 sm:opacity-0 sm:group-hover:opacity-100 transition-all duration-300 sm:translate-y-1 sm:group-hover:translate-y-0">
+    <motion.div
+      className="relative group"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+    >
+      {/* Action buttons */}
+      <div className="absolute top-2 right-2 z-10 flex items-center gap-1.5 sm:opacity-0 sm:group-hover:opacity-100 transition-all duration-300">
         {/* Copy button */}
-        <button
+        <motion.button
           onClick={handleCopy}
           className={cn(
-            "relative flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-300 border backdrop-blur-xl overflow-hidden",
+            "relative flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors duration-300 border backdrop-blur-xl overflow-hidden",
             copied
-              ? "bg-success/20 border-success/50 text-success scale-105 shadow-[0_0_20px_hsl(var(--success)/0.4)]"
-              : "bg-primary/10 border-primary/30 text-primary hover:border-primary/60 hover:bg-primary/20 hover:shadow-[0_0_20px_hsl(var(--primary)/0.3)] hover:scale-105 active:scale-95"
+              ? "bg-success/20 border-success/50 text-success shadow-[0_0_20px_hsl(var(--success)/0.4)]"
+              : "bg-primary/10 border-primary/30 text-primary hover:border-primary/60 hover:bg-primary/20 hover:shadow-[0_0_20px_hsl(var(--primary)/0.3)]"
           )}
+          whileHover={{ scale: 1.08 }}
+          whileTap={{ scale: 0.92 }}
           title="Copy to clipboard"
         >
-          {/* Shimmer sweep on hover */}
-          <span className="absolute inset-0 bg-gradient-to-r from-transparent via-primary/15 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
-          <span className={cn("transition-all duration-300 relative z-[1]", copied && "animate-scale-in")}>
-            {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-          </span>
-          <span className="relative z-[1]">{copied ? "Copied!" : "Copy"}</span>
-        </button>
+          <AnimatePresence mode="wait">
+            <motion.span
+              key={copied ? "check" : "copy"}
+              initial={{ scale: 0, rotate: -90 }}
+              animate={{ scale: 1, rotate: 0 }}
+              exit={{ scale: 0, rotate: 90 }}
+              transition={{ duration: 0.2 }}
+            >
+              {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+            </motion.span>
+          </AnimatePresence>
+          {copied ? "Copied!" : "Copy"}
+        </motion.button>
 
         {/* Download button */}
-        <button
+        <motion.button
           onClick={handleDownload}
           className={cn(
-            "relative flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-300 border backdrop-blur-xl overflow-hidden",
+            "relative flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors duration-300 border backdrop-blur-xl overflow-hidden",
             downloaded
-              ? "bg-success/20 border-success/50 text-success scale-105 shadow-[0_0_20px_hsl(var(--success)/0.4)]"
-              : "bg-accent/10 border-accent/30 text-accent hover:border-accent/60 hover:bg-accent/20 hover:shadow-[0_0_20px_hsl(var(--accent)/0.3)] hover:scale-105 active:scale-95"
+              ? "bg-success/20 border-success/50 text-success shadow-[0_0_20px_hsl(var(--success)/0.4)]"
+              : "bg-accent/10 border-accent/30 text-accent hover:border-accent/60 hover:bg-accent/20 hover:shadow-[0_0_20px_hsl(var(--accent)/0.3)]"
           )}
+          whileHover={{ scale: 1.08 }}
+          whileTap={{ scale: 0.92 }}
           title="Download as .txt"
         >
-          <span className="absolute inset-0 bg-gradient-to-r from-transparent via-accent/15 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700 delay-100" />
-          <span className={cn("transition-all duration-300 relative z-[1]", downloaded && "animate-scale-in")}>
-            {downloaded ? <Check className="w-3.5 h-3.5" /> : <Download className="w-3.5 h-3.5" />}
-          </span>
-          <span className="relative z-[1]">{downloaded ? "Done!" : ".txt"}</span>
-        </button>
+          <AnimatePresence mode="wait">
+            <motion.span
+              key={downloaded ? "check" : "download"}
+              initial={{ scale: 0, y: 10 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0, y: -10 }}
+              transition={{ duration: 0.2 }}
+            >
+              {downloaded ? <Check className="w-3.5 h-3.5" /> : <Download className="w-3.5 h-3.5" />}
+            </motion.span>
+          </AnimatePresence>
+          {downloaded ? "Done!" : ".txt"}
+        </motion.button>
       </div>
 
       {/* JSON content */}
@@ -169,13 +188,17 @@ const JsonDisplay = ({ data, className }: JsonDisplayProps) => {
         )}
       >
         {/* Top accent line */}
-        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
-        {/* Left accent line */}
+        <motion.div
+          className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent"
+          initial={{ scaleX: 0 }}
+          animate={{ scaleX: 1 }}
+          transition={{ duration: 0.8, delay: 0.3 }}
+        />
         <div className="absolute top-0 left-0 bottom-0 w-px bg-gradient-to-b from-primary/30 via-accent/20 to-transparent" />
 
         <code className="text-foreground/90">{formatJson(data)}</code>
       </pre>
-    </div>
+    </motion.div>
   );
 };
 
