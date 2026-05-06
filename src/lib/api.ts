@@ -121,6 +121,24 @@ export const API_ENDPOINTS: ApiEndpoint[] = [
     description: 'Get details by email address',
     icon: 'mail',
   },
+  {
+    id: 'gas',
+    name: 'Gas Lookup',
+    endpoint: '/gas',
+    parameter: 'num',
+    placeholder: 'Enter gas connection number',
+    description: 'Get gas connection details',
+    icon: 'flame',
+  },
+  {
+    id: 'fastag',
+    name: 'FASTag Lookup',
+    endpoint: '/fastag',
+    parameter: 'vrn',
+    placeholder: 'Enter vehicle registration',
+    description: 'Get FASTag account details',
+    icon: 'badge',
+  },
 ];
 
 export interface ApiResponse {

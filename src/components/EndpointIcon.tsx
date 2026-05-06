@@ -11,6 +11,8 @@ import {
   Search,
   IdCard,
   Mail,
+  Flame,
+  BadgeCheck,
   LucideIcon,
 } from "lucide-react";
 
@@ -27,6 +29,8 @@ const iconMap: Record<string, LucideIcon> = {
   search: Search,
   "id-card": IdCard,
   mail: Mail,
+  flame: Flame,
+  badge: BadgeCheck,
 };
 
 interface EndpointIconProps {
